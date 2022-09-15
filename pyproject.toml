@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "zh-mistake-text-aug"
+version = "0.1.0"
+description = "中文錯誤類型文字增量"
+authors = ["Philip Huang <p208p2002@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/p208p2002/zh-mistake-text-aug"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+OpenCC = "^1.1.4"
+pydantic = "^1.10.2"
+jieba = "^0.42.1"
+loguru = "^0.6.0"
+py-chinese-pronounce = "^0.1.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
