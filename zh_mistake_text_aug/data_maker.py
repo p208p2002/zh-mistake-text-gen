@@ -7,6 +7,12 @@ from opencc import OpenCC
 from typing import Any
 from .data_model import NoiseCorpus
 from .exception import DataNotFundError,FindOrConvertError
+import os
+
+high_freq_zh_char_path = os.path.join(
+    os.path.dirname(__file__),
+    'high_freq_zh_char.txt'
+)
 
 class BaseDataMaker(ABC):
     def __init__(self,*args,**kwargs) -> None:
@@ -118,7 +124,7 @@ class PronounceSimilarWordPlusMaker(BaseDataMaker):
     
     def setup(self):
         self.high_freq_zh_char = []
-        f = open('high_freq_zh_char.txt', encoding='utf-8')
+        f = open(high_freq_zh_char_path, encoding='utf-8')
         for line in f.readlines():
             self.high_freq_zh_char.append(line.replace('\n', ''))
         f.close()
@@ -344,7 +350,7 @@ class MistakWordMaker(BaseDataMaker):
 class MistakeWordHighFreqMaker(BaseDataMaker):
     def setup(self):
         self.high_freq_zh_char = []
-        f = open('high_freq_zh_char.txt', encoding='utf-8')
+        f = open(high_freq_zh_char_path, encoding='utf-8')
         for line in f.readlines():
             self.high_freq_zh_char.append(line.replace('\n', ''))
         f.close()
@@ -372,12 +378,12 @@ class MistakeWordHighFreqMaker(BaseDataMaker):
 class MissingWordHighFreqMaker(BaseDataMaker):
     def setup(self):
         self.high_freq_zh_char = []
-        f = open('high_freq_zh_char.txt', encoding='utf-8')
+        f = open(high_freq_zh_char_path, encoding='utf-8')
         for line in f.readlines():
             self.high_freq_zh_char.append(line.replace('\n', ''))
         f.close()
 
-    def missing_word_high_freq(self,x):
+    def make(self,x):
         high_freq_char_list = []
         for char_x in list(x):
             if char_x in self.high_freq_zh_char:
@@ -415,8 +421,7 @@ class Pipeline():
                         print("O",g_var_name)
                         self.makers.append(globals()[g_var_name](p2w=self.p2w))
                 except:
-                    pass
-                    # print("X",g_var_name)
+                    print("X",g_var_name)
         
     
     def __call__(self,x, verbose=True):        
