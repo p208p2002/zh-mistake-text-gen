@@ -1,13 +1,15 @@
 import random
 from loguru import logger
 import jieba
-from py_chinese_pronounce import Pronounce2Word
+from .utils import Pronounce2Word
 from abc import ABC
 from opencc import OpenCC
 from typing import Any
 from .data_model import NoiseCorpus
 from .exception import DataNotFundError,FindOrConvertError
 import os
+import py_chinese_pronounce
+from copy import copy
 
 high_freq_zh_char_path = os.path.join(
     os.path.dirname(__file__),
@@ -31,8 +33,10 @@ class BaseDataMaker(ABC):
     def __call__(self, *args: Any, **kwargs: Any)-> NoiseCorpus:
         data = self.make(*args,**kwargs)
         data.type = self.__class__.__name__
+
         if self.t2s(data.correct) == self.t2s(data.incorrect):
             raise FindOrConvertError('After t2s compare is same')
+
         return data
 
 class MissingWordMaker(BaseDataMaker):
@@ -46,9 +50,6 @@ class MissingWordMaker(BaseDataMaker):
         return NoiseCorpus(
             correct=correct,
             incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=span
         )
 
 class MissingVocabMaker(BaseDataMaker):
@@ -58,18 +59,9 @@ class MissingVocabMaker(BaseDataMaker):
         rand = random.randint(0, len(seg_list)-1)
         span = seg_list.pop(rand)
 
-        start_at = 0
-        for seg in seg_list[:rand]:
-            start_at += len(seg)
-        end_at = start_at + len(span)
-
         return NoiseCorpus(
-            type=self.__class__.__name__,
             correct=correct,
-            incorrect=''.join(seg_list),
-            incorrect_start_at=start_at,
-            incorrect_end_at=end_at,
-            span=span
+            incorrect=''.join(seg_list)
         )
 
 class PronounceSimilarWordMaker(BaseDataMaker):
@@ -102,12 +94,8 @@ class PronounceSimilarWordMaker(BaseDataMaker):
         x = ''.join(x)
 
         return NoiseCorpus(
-            type=self.__class__.__name__,
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=select_similar_word
+            incorrect=x
         )
 
 class PronounceSimilarWordPlusMaker(BaseDataMaker):
@@ -163,12 +151,8 @@ class PronounceSimilarWordPlusMaker(BaseDataMaker):
         x = ''.join(x)
 
         return NoiseCorpus(
-            type=self.__class__.__name__,
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=select_similar_word
+            incorrect=x
         )
 
 class PronounceSameWordMaker(BaseDataMaker):
@@ -193,8 +177,7 @@ class PronounceSameWordMaker(BaseDataMaker):
         if len(similar_vocab) == 0:
             raise DataNotFundError('similar_vocab not found')
 
-        rand_for_select_similar_word = random                                                                                                                                                                                                     .randint(
-            0, len(similar_vocab)-1)
+        rand_for_select_similar_word = random.randint(0, len(similar_vocab)-1)
         select_similar_word = similar_vocab[rand_for_select_similar_word]
 
         x = [c for c in x]
@@ -202,12 +185,8 @@ class PronounceSameWordMaker(BaseDataMaker):
         x = ''.join(x)
 
         return NoiseCorpus(
-            type=self.__class__.__name__,
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=select_similar_word
+            incorrect=x
         )
 
 
@@ -234,22 +213,13 @@ class PronounceSimilarVocabMaker(BaseDataMaker):
         random.shuffle(similar_pronounce_spans)
         similar_pronounce_span = similar_pronounce_spans[0]
 
-        start_at = 0
-        for seg in seg_list[:rand]:
-            start_at += len(seg)
-        end_at = start_at + len(span)
-        # logger.debug(f"{rand} {seg_list}")
         seg_list[rand] = similar_pronounce_span
         x = seg_list
         x = ''.join(x)
 
         return NoiseCorpus(
-            type=self.__class__.__name__,
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=start_at,
-            incorrect_end_at=end_at,
-            span=similar_pronounce_span
+            incorrect=x
         )
 
 class PronounceSameVocabMaker(BaseDataMaker):
@@ -276,23 +246,14 @@ class PronounceSameVocabMaker(BaseDataMaker):
         random.shuffle(similar_pronounce_spans)
         similar_pronounce_span = similar_pronounce_spans[0]
 
-        start_at = 0
-        for seg in seg_list[:rand]:
-            start_at += len(seg)
-        end_at = start_at + len(span)
-
         # logger.debug(f"{rand} {seg_list}")
         seg_list[rand] = similar_pronounce_span
         x = seg_list
         x = ''.join(x)
 
         return NoiseCorpus(
-            type=self.__class__.__name__,
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=start_at,
-            incorrect_end_at=end_at,
-            span=similar_pronounce_span
+            incorrect=x
         )
 
 class RedundantWordMaker(BaseDataMaker):
@@ -311,12 +272,8 @@ class RedundantWordMaker(BaseDataMaker):
         x.insert(rand, x[rand-1])
         x = ''.join(x)
         return NoiseCorpus(
-            type=self.__class__.__name__,
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=span
+            incorrect=x
         )
 
 class MistakWordMaker(BaseDataMaker):
@@ -329,7 +286,11 @@ class MistakWordMaker(BaseDataMaker):
     def make(self,x):
         ch_unis = list(self.p2w.uni2cns_map.keys())
         random_ch_uni_index = random.randint(0, len(ch_unis))
-        random_ch = self.p2w._uni2word(ch_unis[random_ch_uni_index])
+
+        try:
+            random_ch = self.p2w._uni2word(ch_unis[random_ch_uni_index])
+        except:
+            raise FindOrConvertError("p2w._uni2word out of range")
 
         correct = x[:]
         rand = random.randint(0, len(x)-1)
@@ -341,10 +302,7 @@ class MistakWordMaker(BaseDataMaker):
 
         return NoiseCorpus(
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=span
+            incorrect=x
         )
 
 class MistakeWordHighFreqMaker(BaseDataMaker):
@@ -369,10 +327,7 @@ class MistakeWordHighFreqMaker(BaseDataMaker):
 
         return NoiseCorpus(
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=span
+            incorrect=x
         )
 
 class MissingWordHighFreqMaker(BaseDataMaker):
@@ -403,23 +358,41 @@ class MissingWordHighFreqMaker(BaseDataMaker):
 
         return NoiseCorpus(
             correct=correct,
-            incorrect=x,
-            incorrect_start_at=rand,
-            incorrect_end_at=rand,
-            span=span
+            incorrect=x
+        )
+
+class RandomInsertVacabMaker(BaseDataMaker):
+    def setup(self):
+        sc_dict_path = os.path.join(
+            os.path.dirname(py_chinese_pronounce.__file__),
+            'sc-dict.txt'
+        )
+        self.sc_dict = open(sc_dict_path,'r').read().split()
+
+    def make(self,x):
+        correct = x[:]
+        x = x[:]
+        random_vocab = self.sc_dict[random.randint(0,len(self.sc_dict)-1)]
+        rand_ins_postion = random.randint(0,len(x))
+        x = list(x)
+        x.insert(rand_ins_postion,random_vocab)
+        x = ''.join(x)
+
+        return NoiseCorpus(
+            correct=correct,
+            incorrect=x
         )
 
 class Pipeline():
     def __init__(self,makers=None):
         self.makers = makers
-        self.p2w = Pronounce2Word()
         if makers is None:
             self.makers = []
-            for g_var_name in globals():
+            for g_var_name in copy(globals()):
                 try:
                     if g_var_name != BaseDataMaker.__name__ and issubclass(globals()[g_var_name],BaseDataMaker):
                         print("O",g_var_name)
-                        self.makers.append(globals()[g_var_name](p2w=self.p2w))
+                        self.makers.append(globals()[g_var_name]())
                 except:
                     print("X",g_var_name)
         

@@ -4,6 +4,7 @@ from zh_mistake_text_aug import Pipeline
 
 def test_pipeline():
     test_inputs = [
+        ""
         "中文語料生成",
         "英國作家J·K·羅琳的奇幻文學系列小說",
         "磡𧒽犇骉驫",
