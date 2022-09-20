@@ -384,8 +384,10 @@ class RandomInsertVacabMaker(BaseDataMaker):
         )
 
 class Pipeline():
-    def __init__(self,makers=None):
+    def __init__(self,makers=None,maker_weight=None):
+        self.maker_weight = maker_weight
         self.makers = makers
+        
         if makers is None:
             self.makers = []
             for g_var_name in copy(globals()):
@@ -395,27 +397,43 @@ class Pipeline():
                         self.makers.append(globals()[g_var_name]())
                 except:
                     print("X",g_var_name)
-        
+
+        if self.maker_weight != None:
+            assert len(self.maker_weight) == len(self.makers),'While have `maker_weight` must provide maker_weight for each maker'
     
-    def __call__(self,x, verbose=True):        
+    def _noraml_call(self,x,k,verbose=True,makers=None):
         out = []
-        for maker in self.makers:
-            try:
-                res = maker(x)
-                out.append(res)
-            except DataNotFundError:
-                """
-                it's ok for this error
-                """
-                pass
-            except FindOrConvertError:
-                """
-                it's ok for this error
-                """
-                pass
-            except Exception as e:
-                if verbose:
-                    logger.warning(f"{x} - {e} - {maker}")
-                exit(1)
-        return out
+
+        if makers == None:
+            makers = self.makers
+
+        for maker in makers:
+            retry = 0
+            while retry<3:
+                try:
+                    res = maker(x)
+                    out.append(res)           
+                    break
+                except Exception as e:
+                    retry += 1
+                    if verbose:
+                        logger.warning(f"{x} - {e} - {type(e)} - {maker} retry:{retry}")
+
+        random.shuffle(out)
+        return out[:k]
+
+    def _weight_call(self,x,k, verbose=True):
+        makers = random.choices(
+            population=self.makers,
+            weights=self.maker_weight,
+            k=k
+        )
+
+        return self._noraml_call(x,k,verbose,makers)
+
+    def __call__(self,x, k=1,verbose=True):
+        if self.maker_weight == None:
+            return self._noraml_call(x,k,verbose)
+
+        return self._weight_call(x,k,verbose)
     
