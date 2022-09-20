@@ -1,16 +1,16 @@
-# 中文錯誤類型文字增量
+# 錯誤類型中文語料生成
 ## 安裝
 ```bash
-pip install zh-mistake-text-aug
+pip install zh-mistake-text-gen
 ```
 ## 使用 (Pipeline)
 ```python
-from zh_mistake_text_aug import Pipeline
+from zh_mistake_text_gen import Pipeline
 import random
 
 random.seed(7)
 pipeline = Pipeline()
-augs = pipeline("中文語料生成")
+augs = pipeline("中文語料生成",k=8)
 for aug in augs:
     print(aug)
 ```
@@ -24,9 +24,21 @@ type='PronounceSameVocabMaker' correct='中文語料生成' incorrect='中文预
 type='RedundantWordMaker' correct='中文語料生成' incorrect='成中文語料生成' incorrect_start_at=0 incorrect_end_at=0 span='成'
 type='MistakWordMaker' correct='中文語料生成' incorrect='谁文語料生成' incorrect_start_at=0 incorrect_end_at=0 span='谁'
 ```
+
+## 文檔
+### `Pipeline`
+- `__init__`
+    - `makers` = None : maker實例，可選
+    - `maker_weight` = None : maker被抽中的機率，可選
+
+- `__call__`
+    - `x` : 輸入句(str)，必需
+    - `k`=1 : 期待最多返回多少結果，可選
+    - `verbose`=True : debug 訊息，可選
+
 ## 可用方法
 ```python
-from zh_mistake_text_aug.data_maker import ...
+from zh_mistake_text_gen.data_maker import *
 ```
 |Data Maker|Description|
 |---|---|
@@ -38,6 +50,7 @@ from zh_mistake_text_aug.data_maker import ...
 |PronounceSameWordMaker|發音相同字替換|
 |PronounceSameVocabMaker|發音相同詞替換|
 |RedundantWordMaker|隨機複製旁邊一個字作為沆於字|
+|RandomInsertVacabMaker|隨機插入詞彙|
 |MistakWordMaker|隨機替換字|
 |MistakeWordHighFreqMaker|隨機替換高頻字|
 |MissingWordHighFreqMaker|隨機刪除高頻字|

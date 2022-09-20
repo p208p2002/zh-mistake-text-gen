@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "zh-mistake-text-aug"
+name = "zh-mistake-text-gen"
 version = "0.2.1"
 description = "中文錯誤類型文字增量"
 authors = ["Philip Huang <p208p2002@gmail.com>"]
 readme = "README.md"
-homepage = "https://github.com/p208p2002/zh-mistake-text-aug"
-include = ["zh_mistake_text_aug/*.txt"]
+homepage = "https://github.com/p208p2002/zh-mistake-text-gen"
+include = ["zh_mistake_text_gen/*.txt"]
 
 [tool.poetry.dependencies]
 python = "^3.8"

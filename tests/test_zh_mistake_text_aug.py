@@ -1,6 +1,6 @@
 import sys
 sys.path.append('./')
-from zh_mistake_text_aug import Pipeline
+from zh_mistake_text_gen import Pipeline
 
 def test_pipeline():
     test_inputs = [
