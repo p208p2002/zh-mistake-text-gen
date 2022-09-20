@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zh-mistake-text-aug"
-version = "0.2.0"
+version = "0.2.1"
 description = "中文錯誤類型文字增量"
 authors = ["Philip Huang <p208p2002@gmail.com>"]
 readme = "README.md"
