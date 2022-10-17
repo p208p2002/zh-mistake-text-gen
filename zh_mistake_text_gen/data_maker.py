@@ -39,6 +39,13 @@ class BaseDataMaker(ABC):
 
         return data
 
+class NoChangeMaker(BaseDataMaker):
+    def make(self, x)->NoiseCorpus:
+        return NoiseCorpus(
+            correct=x,
+            incorrect=x,
+        )
+
 class MissingWordMaker(BaseDataMaker):
     def make(self, x)->NoiseCorpus:
         correct = x[:]

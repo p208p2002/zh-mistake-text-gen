@@ -42,6 +42,7 @@ from zh_mistake_text_gen.data_maker import *
 ```
 |Data Maker|Description|
 |---|---|
+|NoChangeMaker|沒有任何變換|
 |MissingWordMaker|隨機缺字|
 |MissingVocabMaker|隨機缺詞|
 |PronounceSimilarWordMaker|隨機相似字替換|
