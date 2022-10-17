@@ -33,7 +33,8 @@ type='MistakWordMaker' correct='中文語料生成' incorrect='谁文語料生�
 
 - `__call__`
     - `x` : 輸入句(str)，必需
-    - `k`=1 : 期待最多返回多少結果，可選
+    - `error_per_sent`: 每句要多少錯誤。預設:`1`
+    - `no_change_on_gen_fail`: 生成方法失敗的時候允許不變動。啟用時不拋出錯誤，反之。預設:`False`
     - `verbose`=True : debug 訊息，可選
 
 ## 可用方法

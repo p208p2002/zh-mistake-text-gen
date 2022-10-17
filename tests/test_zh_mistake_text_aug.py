@@ -16,8 +16,9 @@ def test_pipeline():
     for i in range(2000):
         for test_input in test_inputs:
             results = pipeline(test_input,verbose=True)
-            for result in results:
-                print(i,result)
+            print(results.correct)
+            print(results.incorrect)
+            print()
 
 if __name__ == "__main__":    
     test_pipeline()

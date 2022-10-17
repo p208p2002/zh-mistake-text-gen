@@ -6,7 +6,7 @@ from abc import ABC
 from opencc import OpenCC
 from typing import Any
 from .data_model import NoiseCorpus
-from .exception import DataNotFundError,FindOrConvertError
+from .exception import DataNotFundError,FindOrConvertError, DataGenerationError
 import os
 import py_chinese_pronounce
 from copy import copy
@@ -399,16 +399,18 @@ class Pipeline():
             self.makers = []
             for g_var_name in copy(globals()):
                 try:
-                    if g_var_name != BaseDataMaker.__name__ and issubclass(globals()[g_var_name],BaseDataMaker):
+                    if g_var_name not in [NoChangeMaker.__name__,BaseDataMaker.__name__] and issubclass(globals()[g_var_name],BaseDataMaker):
                         print("O",g_var_name)
                         self.makers.append(globals()[g_var_name]())
+                    else:
+                        print("X",g_var_name)
                 except:
                     print("X",g_var_name)
 
         if self.maker_weight != None:
             assert len(self.maker_weight) == len(self.makers),'While have `maker_weight` must provide maker_weight for each maker'
     
-    def _noraml_call(self,x,k,verbose=True,makers=None):
+    def _noraml_call(self,x,k,no_change_on_gen_fail=False,verbose=True,makers=None):
         out = []
 
         if makers == None:
@@ -416,7 +418,7 @@ class Pipeline():
 
         for maker in makers:
             retry = 0
-            while retry<3:
+            while retry<5:
                 try:
                     res = maker(x)
                     out.append(res)           
@@ -425,22 +427,39 @@ class Pipeline():
                     retry += 1
                     if verbose:
                         logger.warning(f"{x} - {e} - {type(e)} - {maker} retry:{retry}")
+        
+        if len(out) == 0 and not no_change_on_gen_fail:
+            raise DataGenerationError("Data gen fail")
+        elif len(out) == 0 and no_change_on_gen_fail:
+            return [NoiseCorpus(
+                correct=x,
+                incorrect=x,
+                type=NoChangeMaker.__name__
+            )]
 
         random.shuffle(out)
         return out[:k]
 
-    def _weight_call(self,x,k, verbose=True):
+    def _weight_call(self,x,k, no_change_on_gen_fail, verbose=True):
         makers = random.choices(
             population=self.makers,
             weights=self.maker_weight,
             k=k
         )
 
-        return self._noraml_call(x,k,verbose,makers)
+        return self._noraml_call(x,k,no_change_on_gen_fail,verbose,makers)
 
-    def __call__(self,x, k=1,verbose=True):
-        if self.maker_weight == None:
-            return self._noraml_call(x,k,verbose)
-
-        return self._weight_call(x,k,verbose)
+    def __call__(self,x,error_per_sent=1 ,no_change_on_gen_fail=False,verbose=True):
+        ori_x = x
+        assert error_per_sent>=1
+        for i in range(error_per_sent):
+            if self.maker_weight == None:
+                out = self._noraml_call(x,1,no_change_on_gen_fail,verbose)
+                x = out[0].incorrect
+            else:
+                out = self._weight_call(x,1,no_change_on_gen_fail,verbose)
+                x = out[0].incorrect
+        for o in out:
+            o.correct = ori_x
+        return out[0]
     

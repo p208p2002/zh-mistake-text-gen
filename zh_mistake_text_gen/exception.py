@@ -3,3 +3,6 @@ class DataNotFundError(Exception):
 
 class FindOrConvertError(Exception):
     pass
+
+class DataGenerationError(Exception):
+    pass

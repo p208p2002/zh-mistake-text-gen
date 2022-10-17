@@ -1,20 +1,21 @@
 import sys
 sys.path.append('./')
 sys.path.append('../')
-
-from zh_mistake_text_gen.data_maker import PronounceSimilarWordPlusMaker,MistakeWordHighFreqMaker
+from zh_mistake_text_gen.data_maker import *
 from zh_mistake_text_gen import Pipeline
-
+import random
+random.seed(0)
 if __name__ =="__main__":
     pipeline = Pipeline(
-        makers=[PronounceSimilarWordPlusMaker(level=2),MistakeWordHighFreqMaker()],
-        maker_weight=[0.8,0.3]
+        makers=[PronounceSimilarWordPlusMaker(level=2),MistakeWordHighFreqMaker(),PronounceSameVocabMaker()],
+        maker_weight=[0.2,0.2,0.6]
     )
 
     results = pipeline(
-        "中文語料生成",
-        k=10
+        "維基的基本設計理念是，與其避免人們犯錯，倒不如讓人們更方便地修正錯誤",
+        error_per_sent=3,
+        no_change_on_gen_fail=True
     )
 
-    for result in results:
-        print(result)
+    print(results.correct)
+    print(results.incorrect)
