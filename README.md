@@ -6,25 +6,11 @@ pip install zh-mistake-text-gen
 ## 使用 (Pipeline)
 ```python
 from zh_mistake_text_gen import Pipeline
-import random
-
-random.seed(7)
 pipeline = Pipeline()
-augs = pipeline("中文語料生成",k=8)
-for aug in augs:
-    print(aug)
+incorrect_sent = pipeline("中文語料生成")
+print(incorrect_sent)
+# type='PronounceSimilarVocabMaker' correct='中文語料生成' incorrect='鍾文語料生成' incorrect_start_at=0 incorrect_end_at=2 span='鍾文'
 ```
-```
-type='MissingWordMaker' correct='中文語料生成' incorrect='中文料生成' incorrect_start_at=2 incorrect_end_at=2 span='語'
-type='MissingVocabMaker' correct='中文語料生成' incorrect='語料生成' incorrect_start_at=0 incorrect_end_at=2 span='中文'
-type='PronounceSimilarWordMaker' correct='中文語料生成' incorrect='中文語尥生成' incorrect_start_at=3 incorrect_end_at=3 span='尥'
-type='PronounceSameWordMaker' correct='中文語料生成' incorrect='諥文語料生成' incorrect_start_at=0 incorrect_end_at=0 span='諥'
-type='PronounceSimilarVocabMaker' correct='中文語料生成' incorrect='鍾文語料生成' incorrect_start_at=0 incorrect_end_at=2 span='鍾文'
-type='PronounceSameVocabMaker' correct='中文語料生成' incorrect='中文预料生成' incorrect_start_at=2 incorrect_end_at=4 span='预料'
-type='RedundantWordMaker' correct='中文語料生成' incorrect='成中文語料生成' incorrect_start_at=0 incorrect_end_at=0 span='成'
-type='MistakWordMaker' correct='中文語料生成' incorrect='谁文語料生成' incorrect_start_at=0 incorrect_end_at=0 span='谁'
-```
-
 ## 文檔
 ### `Pipeline`
 - `__init__`
