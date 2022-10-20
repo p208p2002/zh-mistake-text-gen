@@ -1,1 +1,1 @@
-from .data_maker import Pipeline
+from .pipeline import Pipeline

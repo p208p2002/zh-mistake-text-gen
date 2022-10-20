@@ -1,15 +1,13 @@
 from .utils import Pronounce2Word
 from .data_model import NoiseCorpus
-from .exception import DataNotFundError, FindOrConvertError, DataGenerationError
+from .exception import *
 import random
-from loguru import logger
 import jieba
 from abc import ABC
 from opencc import OpenCC
 from typing import Any
 import os
 import py_chinese_pronounce
-from copy import copy
 
 high_freq_zh_char_path = os.path.join(
     os.path.dirname(__file__),
@@ -18,6 +16,12 @@ high_freq_zh_char_path = os.path.join(
 
 
 class BaseDataMaker(ABC):
+    """
+    抽像基類
+
+    :meta private:
+    """
+
     def __init__(self, *args, **kwargs) -> None:
         self.t2s = OpenCC('t2s.json').convert
         self.setup()
@@ -28,10 +32,10 @@ class BaseDataMaker(ABC):
         """
         pass
 
-    def make(self, x) -> NoiseCorpus:
+    def make(self, x):
         raise NotImplementedError
 
-    def __call__(self, *args: Any, **kwargs: Any) -> NoiseCorpus:
+    def __call__(self, *args: Any, **kwargs: Any):
         data = self.make(*args, **kwargs)
         data.type = self.__class__.__name__
 
@@ -42,7 +46,11 @@ class BaseDataMaker(ABC):
 
 
 class NoChangeMaker(BaseDataMaker):
-    def make(self, x) -> NoiseCorpus:
+    """
+    保持不變換
+    """
+
+    def make(self, x):
         return NoiseCorpus(
             correct=x,
             incorrect=x,
@@ -50,7 +58,11 @@ class NoChangeMaker(BaseDataMaker):
 
 
 class MissingWordMaker(BaseDataMaker):
-    def make(self, x) -> NoiseCorpus:
+    """
+    隨機缺字
+    """
+
+    def make(self, x):
         correct = x[:]
         rand = random.randint(0, len(x)-1)
         x = list(x)
@@ -64,7 +76,11 @@ class MissingWordMaker(BaseDataMaker):
 
 
 class MissingVocabMaker(BaseDataMaker):
-    def make(self, x) -> NoiseCorpus:
+    """
+    隨機缺詞
+    """
+
+    def make(self, x):
         correct = x[:]
         seg_list = list(jieba.cut(x))
         rand = random.randint(0, len(seg_list)-1)
@@ -175,6 +191,10 @@ class PronounceSimilarWordPlusMaker(BaseDataMaker):
 
 
 class PronounceSameWordMaker(BaseDataMaker):
+    """
+    相同發音字替換
+    """
+
     def __init__(self, *args, p2w=None, **kwargs):
         super().__init__()
         if p2w is not None:
@@ -210,6 +230,10 @@ class PronounceSameWordMaker(BaseDataMaker):
 
 
 class PronounceSimilarVocabMaker(BaseDataMaker):
+    """
+    相似發聲詞彙替換
+    """
+
     def __init__(self, *args, p2w=None, **kwargs):
         super().__init__()
         if p2w is not None:
@@ -276,6 +300,10 @@ class PronounceSimilarVocabPlusMaker(BaseDataMaker):
 
 
 class PronounceSameVocabMaker(BaseDataMaker):
+    """
+    相同發聲詞彙替換
+    """
+
     def __init__(self, *args, p2w=None, **kwargs):
         super().__init__()
         if p2w is not None:
@@ -311,6 +339,10 @@ class PronounceSameVocabMaker(BaseDataMaker):
 
 
 class RedundantWordMaker(BaseDataMaker):
+    """
+    隨機複製旁邊字插入
+    """
+
     def __init__(self, *args, p2w=None, **kwargs):
         super().__init__()
         if p2w is not None:
@@ -332,6 +364,10 @@ class RedundantWordMaker(BaseDataMaker):
 
 
 class MistakWordMaker(BaseDataMaker):
+    """
+    隨機替換字
+    """
+
     def __init__(self, *args, p2w=None, **kwargs):
         super().__init__()
         if p2w is not None:
@@ -363,6 +399,10 @@ class MistakWordMaker(BaseDataMaker):
 
 
 class MistakeWordHighFreqMaker(BaseDataMaker):
+    """
+    隨機替換高頻字用字
+    """
+
     def setup(self):
         self.high_freq_zh_char = []
         f = open(high_freq_zh_char_path, encoding='utf-8')
@@ -389,6 +429,10 @@ class MistakeWordHighFreqMaker(BaseDataMaker):
 
 
 class MissingWordHighFreqMaker(BaseDataMaker):
+    """
+    隨機移除高頻字
+    """
+
     def setup(self):
         self.high_freq_zh_char = []
         f = open(high_freq_zh_char_path, encoding='utf-8')
@@ -421,6 +465,10 @@ class MissingWordHighFreqMaker(BaseDataMaker):
 
 
 class RandomInsertVacabMaker(BaseDataMaker):
+    """
+    隨機插入詞彙
+    """
+
     def setup(self):
         sc_dict_path = os.path.join(
             os.path.dirname(py_chinese_pronounce.__file__),
@@ -441,81 +489,3 @@ class RandomInsertVacabMaker(BaseDataMaker):
             correct=correct,
             incorrect=x
         )
-
-
-class Pipeline():
-    def __init__(self, makers=None, maker_weight=None):
-        self.maker_weight = maker_weight
-        self.makers = makers
-
-        if makers is None:
-            self.makers = []
-            for g_var_name in copy(globals()):
-                try:
-                    if g_var_name not in [NoChangeMaker.__name__, BaseDataMaker.__name__] and issubclass(globals()[g_var_name], BaseDataMaker):
-                        print("O", g_var_name)
-                        self.makers.append(globals()[g_var_name]())
-                    else:
-                        print("X", g_var_name)
-                except:
-                    print("X", g_var_name)
-
-        if self.maker_weight != None:
-            assert len(self.maker_weight) == len(
-                self.makers), 'While have `maker_weight` must provide maker_weight for each maker'
-
-    def _noraml_call(self, x, k, no_change_on_gen_fail=False, verbose=True, makers=None):
-        out = []
-
-        if makers is None:
-            makers = self.makers
-
-        for maker in makers:
-            retry = 0
-            while retry < 5:
-                try:
-                    res = maker(x)
-                    out.append(res)
-                    break
-                except Exception as e:
-                    retry += 1
-                    if verbose:
-                        logger.warning(
-                            f"{x} - {e} - {type(e)} - {maker} retry:{retry}")
-            if len(out) == k:
-                break
-
-        if len(out) == 0 and not no_change_on_gen_fail:
-            raise DataGenerationError("Data gen fail")
-        elif len(out) == 0 and no_change_on_gen_fail:
-            return [NoiseCorpus(
-                correct=x,
-                incorrect=x,
-                type=NoChangeMaker.__name__
-            )]
-
-        random.shuffle(out)
-        return out[:k]
-
-    def _weight_call(self, x, k, no_change_on_gen_fail, verbose=True):
-        makers = random.choices(
-            population=self.makers,
-            weights=self.maker_weight,
-            k=k
-        )
-
-        return self._noraml_call(x, k, no_change_on_gen_fail, verbose, makers)
-
-    def __call__(self, x, error_per_sent=1, no_change_on_gen_fail=False, verbose=True):
-        ori_x = x
-        assert error_per_sent >= 1
-        for i in range(error_per_sent):
-            if self.maker_weight is None:
-                out = self._noraml_call(x, 1, no_change_on_gen_fail, verbose)
-                x = out[0].incorrect
-            else:
-                out = self._weight_call(x, 1, no_change_on_gen_fail, verbose)
-                x = out[0].incorrect
-        for o in out:
-            o.correct = ori_x
-        return out[0]

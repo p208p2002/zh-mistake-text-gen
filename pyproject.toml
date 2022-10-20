@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zh-mistake-text-gen"
-version = "0.3.2"
+version = "0.3.3"
 description = "中文錯誤類型文字增量"
 authors = ["Philip Huang <p208p2002@gmail.com>"]
 readme = "README.md"
@@ -17,6 +17,9 @@ py-chinese-pronounce = "^0.1.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3"
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^5.3.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
