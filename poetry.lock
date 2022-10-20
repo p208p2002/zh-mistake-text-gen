@@ -64,11 +64,11 @@ dev = ["Sphinx (>=4.1.1)", "black (>=19.10b0)", "colorama (>=0.3.4)", "docutils 
 
 [[package]]
 name = "more-itertools"
-version = "8.14.0"
+version = "9.0.0"
 description = "More routines for operating on iterables, beyond itertools"
 category = "dev"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.7"
 
 [[package]]
 name = "opencc"
@@ -110,7 +110,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "py-chinese-pronounce"
-version = "0.1.6"
+version = "0.1.7"
 description = "文字/漢語發音/注音互轉。相似發聲字/單詞。"
 category = "main"
 optional = false
@@ -334,8 +334,8 @@ loguru = [
     {file = "loguru-0.6.0.tar.gz", hash = "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c"},
 ]
 more-itertools = [
-    {file = "more-itertools-8.14.0.tar.gz", hash = "sha256:c09443cd3d5438b8dafccd867a6bc1cb0894389e90cb53d227456b0b0bccb750"},
-    {file = "more_itertools-8.14.0-py3-none-any.whl", hash = "sha256:1bc4f91ee5b1b31ac7ceacc17c09befe6a40a503907baf9c839c229b5095cfd2"},
+    {file = "more-itertools-9.0.0.tar.gz", hash = "sha256:5a6257e40878ef0520b1803990e3e22303a41b5714006c32a3fd8304b26ea1ab"},
+    {file = "more_itertools-9.0.0-py3-none-any.whl", hash = "sha256:250e83d7e81d0c87ca6bd942e6aeab8cc9daa6096d12c5308f3f92fa5e5c1f41"},
 ]
 opencc = [
     {file = "OpenCC-1.1.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f6ac142c255ec302a82789897f9f6d6919b0775eee7a6f5245f019201843445d"},
@@ -360,8 +360,8 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 py-chinese-pronounce = [
-    {file = "py_chinese_pronounce-0.1.6-py3-none-any.whl", hash = "sha256:27f18380818a8894bc94a114023f772961d173780684bc9166dc270def7cd4b3"},
-    {file = "py_chinese_pronounce-0.1.6.tar.gz", hash = "sha256:f4b1d3efb107661e8add3afcbba648f264399cc03fbf0df43b845a85dda5ce57"},
+    {file = "py_chinese_pronounce-0.1.7-py3-none-any.whl", hash = "sha256:fe7e7f96811e64f44225cdf2d416b82f6dbb3e21d07518eccad8b6d2f9631152"},
+    {file = "py_chinese_pronounce-0.1.7.tar.gz", hash = "sha256:3e115bf6595494251eb15f40fa0a42c97b05250a438ad670f100b7098b1b355d"},
 ]
 pydantic = [
     {file = "pydantic-1.10.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:bb6ad4489af1bac6955d38ebcb95079a836af31e4c4f74aba1ca05bb9f6027bd"},

@@ -35,6 +35,7 @@ from zh_mistake_text_gen.data_maker import *
 |PronounceSimilarWordMaker|隨機相似字替換|
 |PronounceSimilarWordPlusMaker|編輯距離找發音相似並且用高頻字替換|
 |PronounceSimilarVocabMaker|發音相似詞替換|
+|PronounceSimilarVocabPlusMaker|編輯距離找發音相似發音相似詞替換|
 |PronounceSameWordMaker|發音相同字替換|
 |PronounceSameVocabMaker|發音相同詞替換|
 |RedundantWordMaker|隨機複製旁邊一個字作為沆於字|

@@ -117,9 +117,10 @@ class PronounceSimilarWordPlusMaker(BaseDataMaker):
     編輯距離找相似+高頻字
     """
 
-    def __init__(self, *args, p2w=None, level=1, **kwargs):
+    def __init__(self, *args, p2w=None, level=1,limit_k=10, **kwargs):
         super().__init__()
         self.level = level
+        self.limit_k = limit_k
         if p2w is not None:
             self.p2w = p2w
         else:
@@ -144,6 +145,7 @@ class PronounceSimilarWordPlusMaker(BaseDataMaker):
         except Exception as exc:
             raise FindOrConvertError from exc
 
+        new_han_pronounces = new_han_pronounces[:self.limit_k]
         random.shuffle(new_han_pronounces)
         new_han_pronounce = new_han_pronounces[0]
         new_words = self.p2w.han2word(new_han_pronounce)
@@ -223,6 +225,39 @@ class PronounceSimilarVocabMaker(BaseDataMaker):
 
         try:
             similar_pronounce_spans = self.p2w.find_similar_vocab(span)
+        except Exception as exc:
+            raise FindOrConvertError from exc
+        if len(similar_pronounce_spans) == 0:
+            raise DataNotFundError('similar_pronounce_spans not found')
+        random.shuffle(similar_pronounce_spans)
+        similar_pronounce_span = similar_pronounce_spans[0]
+
+        seg_list[rand] = similar_pronounce_span
+        x = seg_list
+        x = ''.join(x)
+
+        return NoiseCorpus(
+            correct=correct,
+            incorrect=x
+        )
+
+class PronounceSimilarVocabPlusMaker(BaseDataMaker):
+    def __init__(self, *args, p2w=None,level=1, **kwargs):
+        super().__init__()
+        self.level = level
+        if p2w is not None:
+            self.p2w = p2w
+        else:
+            self.p2w = Pronounce2Word()
+
+    def make(self, x):
+        correct = x[:]
+        seg_list = list(jieba.cut(x))
+        rand = random.randint(0, len(seg_list)-1)
+        span = seg_list[:].pop(rand)
+
+        try:
+            similar_pronounce_spans = self.p2w.find_similar_vocab_level(span,level=self.level)
         except Exception as exc:
             raise FindOrConvertError from exc
         if len(similar_pronounce_spans) == 0:
