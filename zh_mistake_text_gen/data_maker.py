@@ -55,6 +55,11 @@ class NoChangeMaker(BaseDataMaker):
             correct=x,
             incorrect=x,
         )
+        
+    def __call__(self, *args: Any, **kwargs: Any) -> NoiseCorpus:
+        data = self.make(*args, **kwargs)
+        data.type = self.__class__.__name__
+        return data
 
 
 class MissingWordMaker(BaseDataMaker):

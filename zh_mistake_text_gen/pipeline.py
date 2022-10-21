@@ -49,8 +49,7 @@ class Pipeline():
                     if verbose:
                         logger.warning(
                             f"{x} - {e} - {type(e)} - {maker} retry:{retry}")
-            if len(out) == k:
-                break
+
 
         if len(out) == 0 and not no_change_on_gen_fail:
             raise DataGenerationError("Data gen fail")
