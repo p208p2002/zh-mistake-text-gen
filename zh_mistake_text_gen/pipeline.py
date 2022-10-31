@@ -89,6 +89,7 @@ class Pipeline():
 
         ori_x = x
         assert error_per_sent >= 1
+        error_types = []
         for i in range(error_per_sent):
             if self.maker_weight is None:
                 out = self._noraml_call(x, 1, no_change_on_gen_fail, verbose)
@@ -96,6 +97,12 @@ class Pipeline():
             else:
                 out = self._weight_call(x, 1, no_change_on_gen_fail, verbose)
                 x = out[0].incorrect
-        for o in out:
+            
+            #
+            error_types.append(out[0].type)
+
+        for o in out: 
             o.correct = ori_x
+        
+        out[0].type = '_'.join(error_types)
         return out[0]
