@@ -52,7 +52,7 @@ class Pipeline():
 
 
         if len(out) == 0 and not no_change_on_gen_fail:
-            raise DataGenerationError("Data gen fail")
+            raise  ZeorSearchResultsError("Data gen fail, len(out) == 0")
         elif len(out) == 0 and no_change_on_gen_fail:
             return [NoiseCorpus(
                 correct=x,

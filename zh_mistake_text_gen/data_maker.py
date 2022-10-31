@@ -1,6 +1,3 @@
-from .utils import Pronounce2Word
-from .data_model import NoiseCorpus
-from .exception import *
 import random
 import jieba
 from abc import ABC
@@ -8,6 +5,9 @@ from opencc import OpenCC
 from typing import Any
 import os
 import py_chinese_pronounce
+from .utils import Pronounce2Word
+from .data_model import NoiseCorpus
+from .exception import *
 
 high_freq_zh_char_path = os.path.join(
     os.path.dirname(__file__),
@@ -40,7 +40,7 @@ class BaseDataMaker(ABC):
         data.type = self.__class__.__name__
 
         if self.t2s(data.correct) == self.t2s(data.incorrect):
-            raise FindOrConvertError('After t2s compare is same')
+            raise TraditionalSimplifiedSameError('After t2s compare is same')
 
         return data
 
@@ -55,7 +55,7 @@ class NoChangeMaker(BaseDataMaker):
             correct=x,
             incorrect=x,
         )
-        
+
     def __call__(self, *args: Any, **kwargs: Any) -> NoiseCorpus:
         data = self.make(*args, **kwargs)
         data.type = self.__class__.__name__
@@ -138,7 +138,7 @@ class PronounceSimilarWordPlusMaker(BaseDataMaker):
     編輯距離找相似+高頻字
     """
 
-    def __init__(self, *args, p2w=None, level=1,limit_k=10, **kwargs):
+    def __init__(self, *args, p2w=None, level=1, limit_k=10, **kwargs):
         super().__init__()
         self.level = level
         self.limit_k = limit_k
@@ -174,13 +174,13 @@ class PronounceSimilarWordPlusMaker(BaseDataMaker):
             filter(lambda x: x in self.high_freq_zh_char, new_words))
 
         if len(new_words) == 0:
-            raise DataNotFundError("No high freq char in string")
+            raise ZeorSearchResultsError("No high freq char in string")
 
         random.shuffle(new_words)
         new_word = new_words[0]
 
         if new_word == replace_word:
-            raise DataNotFundError("same word")
+            raise ZeorSearchResultsError("same word")
 
         rand_for_select_similar_word = random.randint(0, len(new_word)-1)
         select_similar_word = new_word[rand_for_select_similar_word]
@@ -219,7 +219,7 @@ class PronounceSameWordMaker(BaseDataMaker):
             raise FindOrConvertError from exc
 
         if len(similar_vocab) == 0:
-            raise DataNotFundError('similar_vocab not found')
+            raise ZeorSearchResultsError('similar_vocab not found')
 
         rand_for_select_similar_word = random.randint(0, len(similar_vocab)-1)
         select_similar_word = similar_vocab[rand_for_select_similar_word]
@@ -257,7 +257,7 @@ class PronounceSimilarVocabMaker(BaseDataMaker):
         except Exception as exc:
             raise FindOrConvertError from exc
         if len(similar_pronounce_spans) == 0:
-            raise DataNotFundError('similar_pronounce_spans not found')
+            raise ZeorSearchResultsError('similar_pronounce_spans not found')
         random.shuffle(similar_pronounce_spans)
         similar_pronounce_span = similar_pronounce_spans[0]
 
@@ -270,8 +270,9 @@ class PronounceSimilarVocabMaker(BaseDataMaker):
             incorrect=x
         )
 
+
 class PronounceSimilarVocabPlusMaker(BaseDataMaker):
-    def __init__(self, *args, p2w=None,level=1, **kwargs):
+    def __init__(self, *args, p2w=None, level=1, **kwargs):
         super().__init__()
         self.level = level
         if p2w is not None:
@@ -286,11 +287,12 @@ class PronounceSimilarVocabPlusMaker(BaseDataMaker):
         span = seg_list[:].pop(rand)
 
         try:
-            similar_pronounce_spans = self.p2w.find_similar_vocab_level(span,level=self.level)
+            similar_pronounce_spans = self.p2w.find_similar_vocab_level(
+                span, level=self.level)
         except Exception as exc:
             raise FindOrConvertError from exc
         if len(similar_pronounce_spans) == 0:
-            raise DataNotFundError('similar_pronounce_spans not found')
+            raise ZeorSearchResultsError('similar_pronounce_spans not found')
         random.shuffle(similar_pronounce_spans)
         similar_pronounce_span = similar_pronounce_spans[0]
 
@@ -328,7 +330,7 @@ class PronounceSameVocabMaker(BaseDataMaker):
             raise FindOrConvertError from exc
 
         if len(similar_pronounce_spans) == 0:
-            raise DataNotFundError('similar_pronounce_spans not found')
+            raise ZeorSearchResultsError('similar_pronounce_spans not found')
         random.shuffle(similar_pronounce_spans)
         similar_pronounce_span = similar_pronounce_spans[0]
 
@@ -452,7 +454,7 @@ class MissingWordHighFreqMaker(BaseDataMaker):
                 high_freq_char_list.append(char_x)
 
         if len(high_freq_char_list) == 0:
-            raise DataNotFundError("No high freq char in string")
+            raise ZeorSearchResultsError("No high freq char in string")
 
         random_ch = random.choice(high_freq_char_list)
 
