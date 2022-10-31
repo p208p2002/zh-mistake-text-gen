@@ -16,3 +16,7 @@ class FindOrConvertError(Exception):
     """
     pass
 
+class MistakeTextHappendOnDisableWordsError(Exception):
+    """
+    產生錯誤文字發生在禁用字上
+    """

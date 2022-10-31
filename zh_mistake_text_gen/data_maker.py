@@ -5,7 +5,7 @@ from opencc import OpenCC
 from typing import Any
 import os
 import py_chinese_pronounce
-from .utils import Pronounce2Word
+from .utils import Pronounce2Word,is_mistake_happend_on_disable_words
 from .data_model import NoiseCorpus
 from .exception import *
 
@@ -41,6 +41,9 @@ class BaseDataMaker(ABC):
 
         if self.t2s(data.correct) == self.t2s(data.incorrect):
             raise TraditionalSimplifiedSameError('After t2s compare is same')
+        
+        if is_mistake_happend_on_disable_words(data.correct,data.incorrect):
+            raise MistakeTextHappendOnDisableWordsError()
 
         return data
 
